@@ -1,4 +1,4 @@
-name: SpaceWarx CI-CD
+name: Android APK Build
 
 on:
   push:
@@ -7,36 +7,58 @@ on:
     branches: [ "main", "master" ]
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-22.04
 
     steps:
-    # 1. Kodu GitHub sunucusuna çekiyoruz
-    - name: Repository'i Klonla
+    - name: Kodu Cek
       uses: actions/checkout@v4
 
-    # 2. Python Kurulumu
-    - name: Python Kur
-      uses: actions/setup-python@v5
-      with:
-        python-node-version: '3.10'
-
-    # 3. Bağımlılıkları Yükle (Eğer requirements.txt varsa yükler, yoksa hata vermeden geçer)
-    - name: Bağımlılıkları Yükle
+    - name: Sistem Bagimliliklarini Kur
       run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          git \
+          ffmpeg \
+          libsdl2-dev \
+          libsdl2-image-dev \
+          libsdl2-mixer-dev \
+          libsdl2-ttf-dev \
+          libportmidi-dev \
+          libswscale-dev \
+          libavformat-dev \
+          libavcodec-dev \
+          zlib1g-dev \
+          libgstreamer1.0-dev \
+          gstreamer1.0-plugins-base \
+          gstreamer1.0-plugins-good \
+          gstreamer1.0-plugins-bad \
+          gstreamer1.0-plugins-ugly \
+          gstreamer1.0-libav \
+          libsqlite3-dev \
+          sqlite3 \
+          libgirepository1.0-dev \
+          libcairo2-dev \
+          pkg-config \
+          python3-dev \
+          python3-pip \
+          zip \
+          unzip \
+          openjdk-17-jdk
 
-    # 4. Projedeki fonts ve assets klasörlerini kontrol et ve arşivle
-    - name: Proje Çıktılarını Zip Yap
+    - name: Python ve Buildozer Kur
       run: |
-        echo "Dosyalar paketleniyor..."
-        zip -r SpaceWarx_Release.zip fonts assets gen_assets.py buildozer.spec || echo "Bazı dosyalar eksik ama zip oluşturuluyor..."
-        zip -u SpaceWarx_Release.zip *.py || echo "Ekstra Python dosyaları eklendi."
+        pip3 install --user --upgrade pip
+        pip3 install --user --upgrade buildozer cython virtualenv
 
-    # 5. Oluşan Zip dosyasını GitHub üzerinde indirilebilir bir "Artifact" yap
-    - name: Çıktıyı Kaydet (Artifact)
+    - name: APK Derle (Buildozer)
+      run: |
+        export PATH=$PATH:~/.local/bin
+        buildozer -v android debug
+
+    - name: APK Dosyasini Yayinla
       uses: actions/upload-artifact@v4
       with:
-        name: SpaceWarx-Build-Paketi
-        path: SpaceWarx_Release.zip
+        name: SpaceWarx-Android-APK
+        path: bin/*.apk
