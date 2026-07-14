@@ -14,6 +14,13 @@ jobs:
     - name: Kodu Cek
       uses: actions/checkout@v4
 
+    # Java 17'yi sisteme kesin olarak tanımlıyoruz (Hatanın asıl çözümü burası!)
+    - name: Java 17 Kur ve Ayarla
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
     - name: Sistem Bagimliliklarini Kur
       run: |
         sudo apt-get update
@@ -45,19 +52,18 @@ jobs:
           python3-dev \
           python3-pip \
           zip \
-          unzip \
-          openjdk-17-jdk
+          unzip
 
     - name: Python ve Buildozer Kur
       run: |
         pip3 install --user --upgrade pip
         pip3 install --user --upgrade buildozer cython virtualenv
 
-    # HATA VEREN LİSANS SORUNUNU BURADA ÇÖZÜYORUZ:
     - name: APK Derle (Buildozer)
       run: |
         export PATH=$PATH:~/.local/bin
-        # Buildozer'ın Android SDK lisanslarını otomatik olarak onaylamasını sağlıyoruz
+        # Java 17 yolunu Buildozer'a zorla tanıtıyoruz
+        export JAVA_HOME=$JAVA_HOME_17_X64
         yes | buildozer -v android debug
         
     - name: APK Dosyasini Yayinla
