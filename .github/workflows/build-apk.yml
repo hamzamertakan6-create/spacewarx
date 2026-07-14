@@ -14,7 +14,6 @@ jobs:
     - name: Kodu Cek
       uses: actions/checkout@v4
 
-    # Hata veren kütüphane için gerekli ek paketi (libunwind-dev) ekledik
     - name: Sistem Bagimliliklarini Kur
       run: |
         sudo apt-get update
@@ -54,11 +53,13 @@ jobs:
         pip3 install --user --upgrade pip
         pip3 install --user --upgrade buildozer cython virtualenv
 
+    # HATA VEREN LİSANS SORUNUNU BURADA ÇÖZÜYORUZ:
     - name: APK Derle (Buildozer)
       run: |
         export PATH=$PATH:~/.local/bin
-        buildozer -v android debug
-
+        # Buildozer'ın Android SDK lisanslarını otomatik olarak onaylamasını sağlıyoruz
+        yes | buildozer -v android debug
+        
     - name: APK Dosyasini Yayinla
       uses: actions/upload-artifact@v4
       with:
